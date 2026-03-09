@@ -1,0 +1,39 @@
+import java.io.*;
+import java.net.*;
+import java.util.Random;
+
+public class Producent {
+    public static void main(String[] args) throws InterruptedException {
+        String host = "127.0.0.1"; // Zmień na IP serwera w kroku 4
+        int port = 5000;
+        String marka = "BMW"; // Każdy producent może mieć inną markę
+
+        while (true) {
+            String vin = "VIN-" + new Random().nextInt(10000);
+            String auto = marka + " (" + vin + ")";
+            boolean dostarczono = false;
+
+            while (!dostarczono) {
+                try (Socket socket = new Socket(host, port);
+                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                    out.println("PRODUCENT|" + auto);
+                    String resp = in.readLine();
+
+                    if (resp.startsWith("OK")) {
+                        System.out.println("[PRODUCENT] " + resp);
+                        dostarczono = true;
+                    } else {
+                        System.out.println("[PRODUCENT] Salon pełny, czekam...");
+                        Thread.sleep(3000);
+                    }
+                } catch (IOException e) {
+                    System.out.println("Błąd połączenia. Ponawiam...");
+                    Thread.sleep(5000);
+                }
+            }
+            Thread.sleep(2000); // Czas produkcji kolejnego auta
+        }
+    }
+}

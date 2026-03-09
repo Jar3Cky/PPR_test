@@ -1,0 +1,26 @@
+public class Producer implements Runnable {
+    private final Salon salon;
+    private final String brand;
+    private int count = 1;
+
+    public Producer(Salon salon, String brand) {
+        this.salon = salon;
+        this.brand = brand;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                // Generowanie unikalnego VIN
+                String vin = brand.toUpperCase() + "-" + System.currentTimeMillis() + "-" + count++;
+                Car car = new Car(vin, brand);
+                
+                salon.put(car, brand + "_Factory");
+                Thread.sleep(2000); // Czas produkcji
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Fabryka " + brand + " przerwała pracę.");
+        }
+    }
+}

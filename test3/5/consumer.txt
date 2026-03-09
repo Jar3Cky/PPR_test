@@ -1,0 +1,26 @@
+public class Consumer implements Runnable {
+    private final Salon salon;
+    private final String name;
+    private final String preferredBrand;
+
+    public Consumer(Salon salon, String name, String preferredBrand) {
+        this.salon = salon;
+        this.name = name;
+        this.preferredBrand = preferredBrand;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                // Klient próbuje kupić auto - jeśli nie ma, metoda go zablokuje (wait)
+                salon.takeSpecific(name, preferredBrand);
+                
+                // Czas do następnych zakupów
+                Thread.sleep(4000); 
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Klient " + name + " opuścił system.");
+        }
+    }
+}

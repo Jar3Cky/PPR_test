@@ -1,0 +1,30 @@
+import java.io.*;
+import java.net.*;
+
+public class Konsument {
+    public static void main(String[] args) throws InterruptedException {
+        String host = "127.0.0.1";
+        int port = 5000;
+        String preferencja = "Audi"; // Zmień na "ANY" dla zwykłego klienta
+
+        while (true) {
+            try (Socket socket = new Socket(host, port);
+                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+                out.println("KONSUMENT|" + preferencja);
+                String resp = in.readLine();
+
+                if (resp.startsWith("OK")) {
+                    System.out.println("[KONSUMENT] " + resp);
+                    break; // Kupił, wychodzi z salonu
+                } else {
+                    System.out.println("[KONSUMENT] Brak " + preferencja + ". Wrócę później...");
+                    Thread.sleep(4000);
+                }
+            } catch (IOException e) {
+                Thread.sleep(5000);
+            }
+        }
+    }
+}

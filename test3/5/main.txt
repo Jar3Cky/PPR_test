@@ -1,0 +1,15 @@
+public class Main {
+    public static void main(String[] args) {
+        // Salon na 3 miejsca, żeby łatwo było zobaczyć blokowanie producentów
+        Salon salon = new Salon(3);
+
+        // Uruchamiamy producentów
+        new Thread(new Producer(salon, "Toyota")).start();
+        new Thread(new Producer(salon, "BMW")).start();
+
+        // Uruchamiamy klientów z różnymi preferencjami
+        new Thread(new Consumer(salon, "Jan", "Toyota")).start();
+        new Thread(new Consumer(salon, "Anna", "BMW")).start();
+        new Thread(new Consumer(salon, "Piotr", "Toyota")).start();
+    }
+}
