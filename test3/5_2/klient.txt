@@ -1,30 +1,29 @@
-import java.io.*;
-import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Konsument {
-    public static void main(String[] args) throws InterruptedException {
-        String host = "127.0.0.1";
-        int port = 5000;
-        String preferencja = "Audi"; // Zmień na "ANY" dla zwykłego klienta
+public class Ksiazka {
+    public int nrBiblioteczny;
+    public String autor;
+    public String tytul;
+    public String dataWydania;
+    public String tresc;
+    public String wlasciciel; // login pisarza, który ją dodał
 
-        while (true) {
-            try (Socket socket = new Socket(host, port);
-                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+    public boolean czyZablokowana = false; // dla pisarza (do niszczenia/edycji)
+    public List<String> aktualniCzytelnicy = new ArrayList<>(); // lista loginów osób czytających
 
-                out.println("KONSUMENT|" + preferencja);
-                String resp = in.readLine();
+    public Ksiazka(int nr, String autor, String tytul, String data, String tresc, String wlasciciel) {
+        this.nrBiblioteczny = nr;
+        this.autor = autor;
+        this.tytul = tytul;
+        this.dataWydania = data;
+        this.tresc = tresc;
+        this.wlasciciel = wlasciciel;
+    }
 
-                if (resp.startsWith("OK")) {
-                    System.out.println("[KONSUMENT] " + resp);
-                    break; // Kupił, wychodzi z salonu
-                } else {
-                    System.out.println("[KONSUMENT] Brak " + preferencja + ". Wrócę później...");
-                    Thread.sleep(4000);
-                }
-            } catch (IOException e) {
-                Thread.sleep(5000);
-            }
-        }
+    @Override
+    public String toString() {
+        return String.format("ID: %d | %s - %s | Blokada: %b | Czytelnicy: %s", 
+                nrBiblioteczny, autor, tytul, czyZablokowana, aktualniCzytelnicy);
     }
 }
