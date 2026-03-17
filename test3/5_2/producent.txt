@@ -1,39 +1,53 @@
 import java.io.*;
 import java.net.*;
-import java.util.Random;
+import java.util.*;
 
-public class Producent {
-    public static void main(String[] args) throws InterruptedException {
-        String host = "127.0.0.1"; // Zmień na IP serwera w kroku 4
-        int port = 5000;
-        String marka = "BMW"; // Każdy producent może mieć inną markę
+public class SerwerBiblioteki {
+    private static List<Ksiazka> listaKsiazek = new ArrayList<>();
+    private static int generatorId = 1;
+
+    public static void main(String[] args) throws IOException {
+        ServerSocket serwer = new ServerSocket(5000);
+        System.out.println("Serwer Biblioteki uruchomiony na porcie 5000...");
 
         while (true) {
-            String vin = "VIN-" + new Random().nextInt(10000);
-            String auto = marka + " (" + vin + ")";
-            boolean dostarczono = false;
+            Socket klient = serwer.accept();
+            // Obsługa każdego klienta w nowym wątku
+            new Thread(() -> obsluzZgloszenie(klient)).start();
+        }
+    }
 
-            while (!dostarczono) {
-                try (Socket socket = new Socket(host, port);
-                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+    private static void obsluzZgloszenie(Socket s) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+             PrintWriter out = new PrintWriter(s.getOutputStream(), true)) {
 
-                    out.println("PRODUCENT|" + auto);
-                    String resp = in.readLine();
+            String zadanie;
+            while ((zadanie = in.readLine()) != null) {
+                String[] p = zadanie.split(";"); // np. WYPOZYCZ;Jan;1
+                String komenda = p[0];
+                String user = p[1];
 
-                    if (resp.startsWith("OK")) {
-                        System.out.println("[PRODUCENT] " + resp);
-                        dostarczono = true;
-                    } else {
-                        System.out.println("[PRODUCENT] Salon pełny, czekam...");
-                        Thread.sleep(3000);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Błąd połączenia. Ponawiam...");
-                    Thread.sleep(5000);
+                synchronized (listaKsiazek) {
+                    // Tutaj szukamy obiektu Ksiazka w liście i wykonujemy operacje
+                    // Przykład dla wypożyczenia:
+                    if (komenda.equals("WYPOZYCZ")) {
+                        int id = Integer.parseInt(p[2]);
+                        Ksiazka k = znajdz(id);
+                        if (k != null && !k.czyZablokowana) {
+                            k.aktualniCzytelnicy.add(user);
+                            out.println("Sukces;Tresc:" + k.tresc);
+                        } else {
+                            out.println("Blad;Ksiazka niedostepna");
+                        }
+                    } 
+                    // ... reszta komend (DODAJ, BLOKUJ, USUN, RAPORT)
                 }
             }
-            Thread.sleep(2000); // Czas produkcji kolejnego auta
-        }
+        } catch (Exception e) { System.out.println("Klient rozlaczony"); }
+    }
+
+    private static Ksiazka znajdz(int id) {
+        for (Ksiazka k : listaKsiazek) if (k.nrBiblioteczny == id) return k;
+        return null;
     }
 }
